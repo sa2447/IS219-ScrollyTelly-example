@@ -44,10 +44,10 @@
 }
 
 .step {
-  border: 1px solid rgba(16, 185, 129, 0.18);
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 24px 18px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -55,8 +55,8 @@
 }
 
 .stepActive {
-  border-color: rgba(16, 185, 129, 0.45);
-  background: rgba(16, 185, 129, 0.08);
+  border-color: transparent;
+  background: transparent;
 }
 
 .kicker {
@@ -127,7 +127,7 @@
 .thumbStack {
   position: relative;
   width: 100%;
-  height: min(56vh, 520px);
+  height: min(62vh, 560px);
   border-radius: 12px;
   border: 1px solid rgba(16, 185, 129, 0.15);
   background: rgba(0, 0, 0, 0.25);

@@ -2,6 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 
 const IMAGES = ["Fathomless.png", "Pokeymanz.png", "Stam.png"] as const;
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+function asset(path: string) {
+  return `${BASE_PATH}${path}`;
+}
 
 export default function ImagesPage() {
   return (
@@ -37,7 +41,7 @@ export default function ImagesPage() {
         {IMAGES.map((name) => (
           <a
             key={name}
-            href={`/images/${name}`}
+            href={asset(`/images/${name}`)}
             style={{
               border: "1px solid rgba(16,185,129,0.18)",
               borderRadius: 14,
@@ -47,7 +51,7 @@ export default function ImagesPage() {
           >
             <div style={{ fontSize: 12, color: "rgba(236,253,245,0.7)", marginBottom: 8 }}>{name}</div>
             <Image
-              src={`/images/${name}`}
+              src={asset(`/images/${name}`)}
               alt={name}
               width={1200}
               height={800}

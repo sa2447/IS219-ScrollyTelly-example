@@ -7,6 +7,7 @@ import styles from "./library.module.css";
 
 type Doc = {
   id: string;
+  number: number;
   title: string;
   subtitle: string;
   kicker: string;
@@ -17,13 +18,19 @@ type Doc = {
   tags: string[];
 };
 
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+function asset(path: string) {
+  return `${BASE_PATH}${path}`;
+}
+
 const DOCS: Doc[] = [
   {
     id: "fathomless",
+    number: 1,
     title: "Fathomless",
     subtitle: "Deep-sea incident report (mock)",
     kicker: "Document 01",
-    thumbnailSrc: "/images/Fathomless.png",
+    thumbnailSrc: asset("/images/Fathomless.png"),
     pages: 18,
     uploaded: "2026-04-08",
     size: "3.2 MB",
@@ -31,10 +38,11 @@ const DOCS: Doc[] = [
   },
   {
     id: "pokeymanz",
+    number: 2,
     title: "Pokeymanz",
     subtitle: "Game manual excerpt (mock)",
     kicker: "Document 02",
-    thumbnailSrc: "/images/Pokeymanz.png",
+    thumbnailSrc: asset("/images/Pokeymanz.png"),
     pages: 42,
     uploaded: "2026-03-22",
     size: "6.8 MB",
@@ -42,21 +50,17 @@ const DOCS: Doc[] = [
   },
   {
     id: "stam",
+    number: 3,
     title: "Stam",
     subtitle: "Product spec sheet (mock)",
     kicker: "Document 03",
-    thumbnailSrc: "/images/Stam.png",
+    thumbnailSrc: asset("/images/Stam.png"),
     pages: 9,
     uploaded: "2026-02-16",
     size: "1.1 MB",
     tags: ["spec", "bullets", "constraints"],
   },
 ];
-
-function formatDate(date: string) {
-  const d = new Date(date + "T00:00:00Z");
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
-}
 
 export function ScrollyLibrary() {
   const [activeId, setActiveId] = useState(DOCS[0]?.id ?? "");
@@ -128,22 +132,9 @@ export function ScrollyLibrary() {
               className={[styles.step, isActive ? styles.stepActive : ""].filter(Boolean).join(" ")}
               aria-label={`${doc.title} step`}
             >
-              <p className={styles.kicker}>{doc.kicker}</p>
-              <h2 className={styles.title}>{doc.title}</h2>
-              <p className={styles.meta}>{doc.subtitle}</p>
-
-              <p className={styles.meta} style={{ marginTop: 10 }}>
-                Step {idx + 1} of {DOCS.length}. As this card fills the viewport, its thumbnail fades in on
-                the right.
-              </p>
-
-              <div className={styles.tags}>
-                {doc.tags.map((t) => (
-                  <span key={t} className={styles.tag}>
-                    {t}
-                  </span>
-                ))}
-              </div>
+              <span style={{ position: "absolute", left: -9999, width: 1, height: 1, overflow: "hidden" }}>
+                Step {idx + 1} of {DOCS.length}: {doc.kicker} {doc.title}
+              </span>
             </section>
           );
         })}
@@ -153,7 +144,7 @@ export function ScrollyLibrary() {
         <div className={styles.previewTop}>
           <p className={styles.previewTitle}>Active document</p>
           <p className={styles.previewSub}>
-            {activeDoc.title} · {activeDoc.subtitle}
+            {activeDoc.kicker} · {activeDoc.title}
           </p>
         </div>
 
@@ -181,6 +172,14 @@ export function ScrollyLibrary() {
 
           <div className={styles.previewFacts}>
             <div className={styles.fact}>
+              <div className={styles.factKey}>Document #</div>
+              <div className={styles.factVal}>{activeDoc.number}</div>
+            </div>
+            <div className={styles.fact}>
+              <div className={styles.factKey}>Name</div>
+              <div className={styles.factVal}>{activeDoc.title}</div>
+            </div>
+            <div className={styles.fact}>
               <div className={styles.factKey}>Pages</div>
               <div className={styles.factVal}>{activeDoc.pages}</div>
             </div>
@@ -188,19 +187,7 @@ export function ScrollyLibrary() {
               <div className={styles.factKey}>File size</div>
               <div className={styles.factVal}>{activeDoc.size}</div>
             </div>
-            <div className={styles.fact}>
-              <div className={styles.factKey}>Uploaded</div>
-              <div className={styles.factVal}>{formatDate(activeDoc.uploaded)}</div>
-            </div>
-            <div className={styles.fact}>
-              <div className={styles.factKey}>State</div>
-              <div className={styles.factVal}>Ready</div>
-            </div>
           </div>
-
-          <a className={styles.link} href={activeDoc.thumbnailSrc}>
-            Open thumbnail
-          </a>
         </div>
       </aside>
     </div>
