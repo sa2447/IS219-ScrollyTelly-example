@@ -1,3 +1,9 @@
+## My submission
+
+- Live site: [https://<your-username>.github.io/<your-repo>/](https://sa2447.github.io/IS219-ScrollyTelly-example/library/)
+- Author: Scott Armstrong-McIntosh
+- Topic: Added ScrollyTelling to a standalone version of my PDF Reviewers library page.
+
 # Side Project — Scrollytelling Library Demo
 
 Standalone scrollytelling "Library" page (no backend) meant to demo the effect only.
