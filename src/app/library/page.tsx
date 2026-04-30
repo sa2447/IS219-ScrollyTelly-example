@@ -10,8 +10,7 @@ export default function LibraryPage() {
         <div>
           <h1 className={styles.h1}>Library (scrollytelling demo)</h1>
           <p className={styles.sub}>
-            A standalone re-imagining of the PDF app library page: as you scroll the document cards on the
-            left, the sticky preview on the right updates.
+            Full-page scrollytelling slide: scroll to transition documents.
           </p>
         </div>
 

@@ -100,6 +100,10 @@ export function ScrollyLibrary() {
         }
       }
 
+      // If the scroll steps are not yet in view (e.g. at very top),
+      // force the best step to be fully visible so the first slide renders.
+      if (bestRatio <= 0 && bestId) nextOverlap[bestId] = 1;
+
       setStepOverlap(nextOverlap);
       setActiveId(bestId);
     };
@@ -122,6 +126,40 @@ export function ScrollyLibrary() {
 
   return (
     <div className={styles.shell} ref={rootRef}>
+      <div className={styles.stage} aria-label="Sticky scrollytelling stage">
+        <aside className={styles.previewWrap} aria-label="Active document slide">
+          <div className={styles.previewBody}>
+            <div className={styles.thumbStack} aria-label="Thumbnail crossfade stack">
+              {DOCS.map((doc) => {
+                const overlap = stepOverlap[doc.id] ?? (doc.id === activeId ? 1 : 0);
+                const opacity = Math.max(0, Math.min(1, (overlap - 0.12) / 0.76));
+
+                return (
+                  <Image
+                    key={doc.id}
+                    className={styles.thumbLayer}
+                    src={doc.thumbnailSrc}
+                    alt={`${doc.title} thumbnail`}
+                    fill
+                    sizes="100vw"
+                    priority={doc.id === activeId}
+                    style={{ opacity, objectFit: "contain", objectPosition: "center" }}
+                  />
+                );
+              })}
+
+              <div className={styles.slideOverlay} aria-hidden>
+                <p className={styles.slideKicker}>{activeDoc.kicker}</p>
+                <p className={styles.slideTitle}>{activeDoc.title}</p>
+                <p className={styles.slideSub}>
+                  {activeDoc.pages} pages · {activeDoc.size}
+                </p>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
       <div className={styles.scroller}>
         {DOCS.map((doc, idx) => {
           const isActive = doc.id === activeId;
@@ -139,57 +177,6 @@ export function ScrollyLibrary() {
           );
         })}
       </div>
-
-      <aside className={styles.previewWrap} aria-label="Sticky document preview">
-        <div className={styles.previewTop}>
-          <p className={styles.previewTitle}>Active document</p>
-          <p className={styles.previewSub}>
-            {activeDoc.kicker} · {activeDoc.title}
-          </p>
-        </div>
-
-        <div className={styles.previewBody}>
-          <div className={styles.thumbStack} aria-label="Thumbnail crossfade stack">
-            {DOCS.map((doc) => {
-              const overlap = stepOverlap[doc.id] ?? (doc.id === activeId ? 1 : 0);
-              // Make fades feel snappier near the midpoint of the viewport.
-              const opacity = Math.max(0, Math.min(1, (overlap - 0.12) / 0.76));
-
-              return (
-                <Image
-                  key={doc.id}
-                  className={styles.thumbLayer}
-                  src={doc.thumbnailSrc}
-                  alt={`${doc.title} thumbnail`}
-                  fill
-                  sizes="(max-width: 860px) 92vw, 520px"
-                  priority={doc.id === activeId}
-                  style={{ opacity, objectFit: "cover" }}
-                />
-              );
-            })}
-          </div>
-
-          <div className={styles.previewFacts}>
-            <div className={styles.fact}>
-              <div className={styles.factKey}>Document #</div>
-              <div className={styles.factVal}>{activeDoc.number}</div>
-            </div>
-            <div className={styles.fact}>
-              <div className={styles.factKey}>Name</div>
-              <div className={styles.factVal}>{activeDoc.title}</div>
-            </div>
-            <div className={styles.fact}>
-              <div className={styles.factKey}>Pages</div>
-              <div className={styles.factVal}>{activeDoc.pages}</div>
-            </div>
-            <div className={styles.fact}>
-              <div className={styles.factKey}>File size</div>
-              <div className={styles.factVal}>{activeDoc.size}</div>
-            </div>
-          </div>
-        </div>
-      </aside>
     </div>
   );
 }
