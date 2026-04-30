@@ -1,0 +1,208 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import styles from "./library.module.css";
+
+type Doc = {
+  id: string;
+  title: string;
+  subtitle: string;
+  kicker: string;
+  thumbnailSrc: string;
+  pages: number;
+  uploaded: string;
+  size: string;
+  tags: string[];
+};
+
+const DOCS: Doc[] = [
+  {
+    id: "fathomless",
+    title: "Fathomless",
+    subtitle: "Deep-sea incident report (mock)",
+    kicker: "Document 01",
+    thumbnailSrc: "/images/Fathomless.png",
+    pages: 18,
+    uploaded: "2026-04-08",
+    size: "3.2 MB",
+    tags: ["incident", "narrative", "timeline"],
+  },
+  {
+    id: "pokeymanz",
+    title: "Pokeymanz",
+    subtitle: "Game manual excerpt (mock)",
+    kicker: "Document 02",
+    thumbnailSrc: "/images/Pokeymanz.png",
+    pages: 42,
+    uploaded: "2026-03-22",
+    size: "6.8 MB",
+    tags: ["reference", "tables", "images"],
+  },
+  {
+    id: "stam",
+    title: "Stam",
+    subtitle: "Product spec sheet (mock)",
+    kicker: "Document 03",
+    thumbnailSrc: "/images/Stam.png",
+    pages: 9,
+    uploaded: "2026-02-16",
+    size: "1.1 MB",
+    tags: ["spec", "bullets", "constraints"],
+  },
+];
+
+function formatDate(date: string) {
+  const d = new Date(date + "T00:00:00Z");
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "2-digit" });
+}
+
+export function ScrollyLibrary() {
+  const [activeId, setActiveId] = useState(DOCS[0]?.id ?? "");
+  const [stepOverlap, setStepOverlap] = useState<Record<string, number>>({});
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  const activeDoc = useMemo(() => DOCS.find((d) => d.id === activeId) ?? DOCS[0], [activeId]);
+
+  useEffect(() => {
+    const rootEl = rootRef.current;
+    if (!rootEl) return;
+
+    const stepEls = Array.from(rootEl.querySelectorAll<HTMLElement>("[data-step]"));
+    if (stepEls.length === 0) return;
+
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      const vh = window.innerHeight || 1;
+
+      const nextOverlap: Record<string, number> = {};
+      let bestId = stepEls[0]?.getAttribute("data-step") ?? DOCS[0]?.id ?? "";
+      let bestRatio = -1;
+
+      for (const el of stepEls) {
+        const id = el.getAttribute("data-step") ?? "";
+        if (!id) continue;
+
+        const r = el.getBoundingClientRect();
+        const overlapPx = Math.min(r.bottom, vh) - Math.max(r.top, 0);
+        const ratio = Math.max(0, Math.min(1, overlapPx / vh));
+        nextOverlap[id] = ratio;
+
+        if (ratio > bestRatio) {
+          bestRatio = ratio;
+          bestId = id;
+        }
+      }
+
+      setStepOverlap(nextOverlap);
+      setActiveId(bestId);
+    };
+
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(compute);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    compute();
+
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  return (
+    <div className={styles.shell} ref={rootRef}>
+      <div className={styles.scroller}>
+        {DOCS.map((doc, idx) => {
+          const isActive = doc.id === activeId;
+          return (
+            <section
+              key={doc.id}
+              data-step={doc.id}
+              className={[styles.step, isActive ? styles.stepActive : ""].filter(Boolean).join(" ")}
+              aria-label={`${doc.title} step`}
+            >
+              <p className={styles.kicker}>{doc.kicker}</p>
+              <h2 className={styles.title}>{doc.title}</h2>
+              <p className={styles.meta}>{doc.subtitle}</p>
+
+              <p className={styles.meta} style={{ marginTop: 10 }}>
+                Step {idx + 1} of {DOCS.length}. As this card fills the viewport, its thumbnail fades in on
+                the right.
+              </p>
+
+              <div className={styles.tags}>
+                {doc.tags.map((t) => (
+                  <span key={t} className={styles.tag}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+
+      <aside className={styles.previewWrap} aria-label="Sticky document preview">
+        <div className={styles.previewTop}>
+          <p className={styles.previewTitle}>Active document</p>
+          <p className={styles.previewSub}>
+            {activeDoc.title} · {activeDoc.subtitle}
+          </p>
+        </div>
+
+        <div className={styles.previewBody}>
+          <div className={styles.thumbStack} aria-label="Thumbnail crossfade stack">
+            {DOCS.map((doc) => {
+              const overlap = stepOverlap[doc.id] ?? (doc.id === activeId ? 1 : 0);
+              // Make fades feel snappier near the midpoint of the viewport.
+              const opacity = Math.max(0, Math.min(1, (overlap - 0.12) / 0.76));
+
+              return (
+                <Image
+                  key={doc.id}
+                  className={styles.thumbLayer}
+                  src={doc.thumbnailSrc}
+                  alt={`${doc.title} thumbnail`}
+                  fill
+                  sizes="(max-width: 860px) 92vw, 520px"
+                  priority={doc.id === activeId}
+                  style={{ opacity, objectFit: "cover" }}
+                />
+              );
+            })}
+          </div>
+
+          <div className={styles.previewFacts}>
+            <div className={styles.fact}>
+              <div className={styles.factKey}>Pages</div>
+              <div className={styles.factVal}>{activeDoc.pages}</div>
+            </div>
+            <div className={styles.fact}>
+              <div className={styles.factKey}>File size</div>
+              <div className={styles.factVal}>{activeDoc.size}</div>
+            </div>
+            <div className={styles.fact}>
+              <div className={styles.factKey}>Uploaded</div>
+              <div className={styles.factVal}>{formatDate(activeDoc.uploaded)}</div>
+            </div>
+            <div className={styles.fact}>
+              <div className={styles.factKey}>State</div>
+              <div className={styles.factVal}>Ready</div>
+            </div>
+          </div>
+
+          <a className={styles.link} href={activeDoc.thumbnailSrc}>
+            Open thumbnail
+          </a>
+        </div>
+      </aside>
+    </div>
+  );
+}
